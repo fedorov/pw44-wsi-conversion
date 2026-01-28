@@ -1,0 +1,53 @@
+icdo3_topography,snomed_code,snomed_scheme,snomed_meaning
+C71.7 : Brain stem,15926001,SCT,Brain stem
+C72.9 : Central nervous system,21483005,SCT,Central nervous system
+C42.0 : Blood,87612001,SCT,Blood
+C42.1 : Bone marrow,14016003,SCT,Bone marrow
+C71.0 : Cerebrum,83678007,SCT,Cerebrum
+C71.1 : Frontal lobe,83251001,SCT,Frontal lobe
+C71.2 : Temporal lobe,78277001,SCT,Temporal lobe
+C71.3 : Parietal lobe,16630005,SCT,Parietal lobe
+C71.4 : Occipital lobe,31065004,SCT,Occipital lobe
+C71.5 : Cerebral ventricle,35764002,SCT,Cerebral ventricle
+C71.6 : Cerebellum,113305005,SCT,Cerebellum
+C71.8 : Overlapping lesion of brain,12738006,SCT,Brain
+C71.9 : Brain NOS,12738006,SCT,Brain
+C00.9 : Lip NOS,48477009,SCT,Lip
+C01.9 : Base of tongue,47975008,SCT,Root of tongue
+C02.9 : Tongue,21974007,SCT,Tongue
+C04.9 : Floor of mouth,36360002,SCT,Floor of mouth
+C05.0 : Hard palate,90228003,SCT,Hard palate
+C05.1 : Soft palate,49460000,SCT,Soft palate
+C06.0 : Cheek mucosa,16811007,SCT,Buccal mucosa
+C06.9 : Mouth NOS,123851003,SCT,Mouth
+C07.9 : Parotid gland,45289007,SCT,Parotid gland
+C08.0 : Submandibular gland,385296007,SCT,Submandibular gland
+C10.9 : Oropharynx,31389004,SCT,Oropharynx
+C11.9 : Nasopharynx,81502006,SCT,Nasopharynx
+C15.5 : Lower third of esophagus,32849002,SCT,Lower third of esophagus
+C16.0 : Cardia of stomach,14560003,SCT,Gastric cardia
+C16.9 : Stomach,69695003,SCT,Stomach
+C18.0 : Cecum,32713005,SCT,Cecum
+C18.2 : Ascending colon,9040008,SCT,Ascending colon
+C18.3 : Hepatic flexure,48338005,SCT,Hepatic flexure of colon
+C18.4 : Transverse colon,485005,SCT,Transverse colon
+C18.5 : Splenic flexure,72592005,SCT,Splenic flexure of colon
+C18.6 : Descending colon,32622004,SCT,Descending colon
+C18.7 : Sigmoid colon,60184004,SCT,Sigmoid colon
+C18.9 : Colon NOS,71854001,SCT,Colon
+C19.9 : Rectosigmoid junction,49832006,SCT,Rectosigmoid junction
+C20.9 : Rectum,34402009,SCT,Rectum
+C25.0 : Head of pancreas,64163001,SCT,Head of pancreas
+C25.1 : Body of pancreas,72592005,SCT,Body of pancreas
+C25.2 : Tail of pancreas,73239005,SCT,Tail of pancreas
+C25.9 : Pancreas,15776009,SCT,Pancreas
+C34.1 : Upper lobe of lung,45653009,SCT,Upper lobe of lung
+C34.2 : Middle lobe of lung,72481006,SCT,Middle lobe of lung
+C34.3 : Lower lobe of lung,90572001,SCT,Lower lobe of lung
+C34.9 : Lung,39607008,SCT,Lung
+C50.9 : Breast,76752008,SCT,Breast
+C54.1 : Endometrium,2739003,SCT,Endometrium
+C56.9 : Ovary,15497006,SCT,Ovary
+C61.9 : Prostate,41216001,SCT,Prostate
+C64.9 : Kidney,64033007,SCT,Kidney
+C67.9 : Bladder,89837001,SCT,Urinary bladder

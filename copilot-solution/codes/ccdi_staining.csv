@@ -1,0 +1,4 @@
+staining_method,stain_code_1,stain_scheme_1,stain_meaning_1,stain_code_2,stain_scheme_2,stain_meaning_2
+H&E,12710003,SCT,hematoxylin stain,36879007,SCT,water soluble eosin stain
+H and E,12710003,SCT,hematoxylin stain,36879007,SCT,water soluble eosin stain
+Hematoxylin and eosin,12710003,SCT,hematoxylin stain,36879007,SCT,water soluble eosin stain

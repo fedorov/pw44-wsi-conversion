@@ -1,0 +1,15 @@
+# WSI to DICOM Metadata Handler Dependencies
+
+# Core dependencies
+pandas>=2.0.0
+pydicom>=2.4.0
+
+# wsidicom/wsidicomizer - use the same versions as the parent project
+wsidicom @ git+https://github.com/imi-bigpicture/wsidicom.git@09a052e407fd0b531d2e01be4f4acdaf97e1dce3
+wsidicomizer @ git+https://github.com/imi-bigpicture/wsidicomizer.git@f78a83823f0ef7a3f5e2cf7cb8ed4cf980c55527
+
+# Required for wsidicomizer
+tifffile==2023.8.30
+imagecodecs
+pillow
+numpy

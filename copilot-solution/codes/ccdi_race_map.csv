@@ -1,0 +1,23 @@
+race,dicom_ethnic_group,code_1,scheme_1,meaning_1,code_2,scheme_2,meaning_2,code_3,scheme_3,meaning_3
+White,White,413773004,SCT,Caucasian race,,,,,, 
+Unknown;White,White,413773004,SCT,Caucasian race,,,,,,
+Asian,Asian,413582008,SCT,Asian race,,,,,,
+Asian;Unknown,Asian,413582008,SCT,Asian race,,,,,,
+Black or African American,Black,413464008,SCT,African race,,,,,,
+Black or African American;Unknown,Black,413464008,SCT,African race,,,,,,
+American Indian or Alaska Native,American Indian,413490006,SCT,American Indian or Alaska native,,,,,,
+Hispanic or Latino,Hispanic,414408004,SCT,Hispanic,,,,,,
+Hispanic or Latino;Unknown,Hispanic,414408004,SCT,Hispanic,,,,,,
+Native Hawaiian or Other Pacific Islander,Pacific Islander,C41219,NCIt,Native Hawaiian or other Pacific Islander,,,,,,
+Native Hawaiian or other Pacific Islander,Pacific Islander,C41219,NCIt,Native Hawaiian or other Pacific Islander,,,,,,
+Asian;White,Mx Asian White,413582008,SCT,Asian race,413773004,SCT,Caucasian race,,,
+Black or African American;White,Mx Black White,413464008,SCT,African race,413773004,SCT,Caucasian race,,,
+American Indian or Alaska Native;White,Mx AmerInd White,413490006,SCT,American Indian or Alaska native,413773004,SCT,Caucasian race,,,
+Hispanic or Latino;White,Mx Hisp White,414408004,SCT,Hispanic,413773004,SCT,Caucasian race,,,
+Asian;Hispanic or Latino,Mx Asian Hisp,413582008,SCT,Asian race,414408004,SCT,Hispanic,,,
+Black or African American;Hispanic or Latino,Mx Black Hisp,413464008,SCT,African race,414408004,SCT,Hispanic,,,
+Asian;Black or African American,Mx Asian Black,413582008,SCT,Asian race,413464008,SCT,African race,,,
+Black or African American;Hispanic or Latino;White,Mx Black Hisp Wh,413464008,SCT,African race,414408004,SCT,Hispanic,413773004,SCT,Caucasian race
+Asian;Hispanic or Latino;White,Mx Asn Hisp Wh,413582008,SCT,Asian race,414408004,SCT,Hispanic,413773004,SCT,Caucasian race
+Unknown,,,,,,,,,, 
+Not Reported,,,,,,,,,,

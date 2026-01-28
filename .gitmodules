@@ -1,0 +1,12 @@
+[submodule "conversion_mirax_dicom"]
+	path = conversion_mirax_dicom
+	url = https://github.com/ImagingDataCommons/conversion_mirax_dicom
+[submodule "pixelmed"]
+	path = pixelmed
+	url = https://github.com/fedorov/pixelmed.git
+[submodule "idc-wsi-conversion"]
+	path = idc-wsi-conversion
+	url = https://github.com/ImagingDataCommons/idc-wsi-conversion
+[submodule "sardana-dcm"]
+	path = sardana-dcm
+	url = https://github.com/fedorov/sardana-dcm

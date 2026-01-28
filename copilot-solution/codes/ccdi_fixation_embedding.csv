@@ -1,0 +1,5 @@
+fixation_method,fixation_code,fixation_scheme,fixation_meaning,embedding_code,embedding_scheme,embedding_meaning
+FFPE,431510009,SCT,Formalin,311731000,SCT,Paraffin wax
+Formalin fixed paraffin embedded (FFPE),431510009,SCT,Formalin,311731000,SCT,Paraffin wax
+OCT,433469005,SCT,Tissue freezing medium,,,
+Frozen,433469005,SCT,Tissue freezing medium,,,
