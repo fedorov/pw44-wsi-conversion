@@ -64,7 +64,7 @@ CSV Files → CCDIMetadataLoader → DomainMetadata → MetadataBuilder → WsiD
 
 | Issue | claude-solution | copilot-solution |
 |-------|-----------------|------------------|
-| **Concurrent writes** | ⚠️ Race condition possible | ✅ Protected by lock |
+| **Concurrent writes** | ⚠️ Risk with external parallelism only | ✅ Protected by lock |
 | **UID format consistency** | ✅ Matches pixelmed (2.25) | ✅ Matches pixelmed (2.25) |
 | **File corruption** | ⚠️ CSV append can corrupt | ✅ SQLite ACID |
 | **Scalability** | ⚠️ Loads all into memory | ✅ Query on demand |
@@ -174,7 +174,8 @@ class CCDIMetadataLoader:
 
 1. **Race condition in UID persistence** (uid_manager.py)
    - No locking when appending to CSV files
-   - Concurrent conversions could corrupt mappings
+   - Only a risk with external parallel processing (e.g., running multiple conversion scripts simultaneously)
+   - The internal `workers` parameter is for tile encoding and doesn't affect UID generation
 
 2. **Incomplete GTEx support**
    - GTExLoader only extracts slide IDs from filenames
@@ -191,8 +192,8 @@ class CCDIMetadataLoader:
 ### copilot-solution Issues
 
 1. **SQLite lock contention**
-   - With `workers > 1`, threads may block on database
-   - Default `workers=1` mitigates this
+   - Only relevant with external parallelism (multiple conversion processes)
+   - The `workers` parameter is for tile encoding, which happens after UID generation
 
 2. **Missing code returns None silently**
    - Unknown anatomy codes map to None without warning
