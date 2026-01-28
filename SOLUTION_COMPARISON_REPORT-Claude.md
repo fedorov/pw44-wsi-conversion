@@ -14,7 +14,7 @@ Both solutions solve the same problem—converting Whole Slide Images to DICOM w
 | **Code Mappings** | Hardcoded Python dicts | External CSV files |
 | **Extensibility** | Abstract base class pattern | Domain-driven design |
 | **Multi-specimen** | Partial (primary only in wsidicom) | Full (all specimens in sequence) |
-| **Thread Safety** | Not explicitly handled | Threading lock on UID registry |
+| **Thread Safety** | ❌ Not handled (critical gap) | ✅ Threading lock on UID registry |
 
 ---
 
@@ -64,7 +64,7 @@ CSV Files → CCDIMetadataLoader → DomainMetadata → MetadataBuilder → WsiD
 
 | Issue | claude-solution | copilot-solution |
 |-------|-----------------|------------------|
-| **Concurrent writes** | ⚠️ Risk with external parallelism only | ✅ Protected by lock |
+| **Concurrent writes** | ❌ **CRITICAL**: No protection for parallel runs | ✅ Protected by lock |
 | **UID format consistency** | ✅ Matches pixelmed (2.25) | ✅ Matches pixelmed (2.25) |
 | **File corruption** | ⚠️ CSV append can corrupt | ✅ SQLite ACID |
 | **Scalability** | ⚠️ Loads all into memory | ✅ Query on demand |
@@ -172,10 +172,11 @@ class CCDIMetadataLoader:
 
 ### claude-solution Issues
 
-1. **Race condition in UID persistence** (uid_manager.py)
+1. **CRITICAL: Race condition in UID persistence** (uid_manager.py)
    - No locking when appending to CSV files
-   - Only a risk with external parallel processing (e.g., running multiple conversion scripts simultaneously)
-   - The internal `workers` parameter is for tile encoding and doesn't affect UID generation
+   - **Production batch processing requires parallel runs**, making this a critical defect
+   - Concurrent writes can corrupt UID mappings or generate duplicate UIDs for different specimens
+   - Must be fixed before production use with file locking or migration to SQLite
 
 2. **Incomplete GTEx support**
    - GTExLoader only extracts slide IDs from filenames
@@ -191,9 +192,10 @@ class CCDIMetadataLoader:
 
 ### copilot-solution Issues
 
-1. **SQLite lock contention**
-   - Only relevant with external parallelism (multiple conversion processes)
-   - The `workers` parameter is for tile encoding, which happens after UID generation
+1. **SQLite lock contention** (minor)
+   - Lock contention may occur with highly parallel batch processing
+   - This is acceptable behavior—correctness is prioritized over throughput
+   - UID operations are fast, so contention impact is minimal
 
 2. **Missing code returns None silently**
    - Unknown anatomy codes map to None without warning
@@ -264,9 +266,9 @@ Both solutions have reasonable error handling, but neither has comprehensive log
 
 ### For Production Use
 
-1. **Multi-specimen priority**: If handling multi-specimen slides is critical, copilot-solution handles this better
+1. **CRITICAL: Thread safety for parallel processing**: Production batch runs require parallel processing. claude-solution's `UIDMappingManager` lacks file locking, which can cause UID corruption or duplication. This must be fixed before production use.
 
-2. **Add thread safety to claude-solution**: If using concurrent processing, add file locking to `UIDMappingManager`
+2. **Multi-specimen priority**: If handling multi-specimen slides is critical, copilot-solution handles this better
 
 3. **UID format**: Both solutions use compatible `2.25` UUID-based OID format
 
@@ -274,7 +276,7 @@ Both solutions have reasonable error handling, but neither has comprehensive log
 
 | Improvement | claude-solution | copilot-solution |
 |-------------|-----------------|------------------|
-| Add threading lock for UID files | ✅ Needed | N/A (has it) |
+| Add threading lock for UID files | ❌ **CRITICAL** | N/A (has it) |
 | Add TIFF datetime extraction | ✅ Needed | N/A (has it) |
 | Add logging framework | ✅ Needed | ✅ Needed |
 | Complete GTEx loader | ✅ Needed | N/A |
@@ -288,7 +290,7 @@ Both solutions have reasonable error handling, but neither has comprehensive log
 |-----------|--------|-------|
 | **Extensibility** | claude-solution | Abstract base class pattern |
 | **Multi-specimen** | copilot-solution | Full SpecimenDescriptionSequence |
-| **Thread safety** | copilot-solution | SQLite with lock |
+| **Thread safety** | copilot-solution | SQLite with lock (critical for production) |
 | **UID compatibility** | Tie | Both use 2.25 format |
 | **Code maintainability** | copilot-solution | External CSV mappings |
 | **TIFF metadata** | copilot-solution | Has datetime extraction |
@@ -299,10 +301,12 @@ Both solutions have reasonable error handling, but neither has comprehensive log
 
 ## Conclusion
 
-Both solutions are well-architected and functional. The choice depends on priorities:
+Both solutions are well-architected, but **claude-solution has a critical defect** for production use: lack of thread safety in UID persistence. Production batch processing requires parallel runs, and without file locking, claude-solution risks UID corruption or duplication.
 
-- **Use claude-solution** if: You need to add support for multiple dataset formats (GTEx, TCGA, etc.) due to its abstract base class pattern
+**Recommendations:**
 
-- **Use copilot-solution** if: Multi-specimen handling is important, you prefer external configuration over code changes, or you need TIFF datetime extraction
+- **Use copilot-solution as-is** for production if multi-specimen handling and thread safety are priorities
 
-For a production system, consider **merging the best aspects**: claude-solution's extensible loader architecture with copilot-solution's SQLite persistence, thread safety, and multi-specimen handling.
+- **Use claude-solution only after** adding file locking to `UIDMappingManager`, if you need support for multiple dataset formats (GTEx, TCGA, etc.)
+
+- **Best approach**: Merge claude-solution's extensible loader architecture with copilot-solution's SQLite persistence, thread safety, and multi-specimen handling
