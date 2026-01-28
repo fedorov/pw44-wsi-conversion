@@ -5,6 +5,8 @@ Integrates CCDI loader, UID registry, metadata builder, and wsidicomizer
 to convert WSI files with rich DICOM metadata from CCDI CSV tables.
 """
 
+import time
+import shutil
 from pathlib import Path
 from wsidicomizer import WsiDicomizer
 from wsidicomizer.sources import TiffSlideSource
@@ -22,6 +24,11 @@ except ImportError:
     from metadata_builder import MetadataBuilder
     from uid_registry import UIDRegistry
     from tiff_datetime import extract_scan_datetime
+
+
+# Conversion Configuration
+DEFAULT_TILE_SIZE = 240
+DEFAULT_WORKERS = 8
 
 
 class Jpeg2kLosslessEncoder(Jpeg2kEncoder):
@@ -53,8 +60,8 @@ def convert_ccdi_slide(
     diagnosis_csv: Path,
     codes_dir: Path,
     uid_registry_db: Path,
-    tile_size: int = 1024,
-    workers: int = 1
+    tile_size: int = DEFAULT_TILE_SIZE,
+    workers: int = DEFAULT_WORKERS
 ):
     """
     Convert CCDI slide to DICOM with metadata propagation.
@@ -71,9 +78,32 @@ def convert_ccdi_slide(
         tile_size: Tile size for DICOM pyramid
         workers: Number of worker threads
     """
+    start_time = time.time()
     print(f"Converting {input_file.name}...")
+    print(f"  Configuration: tile_size={tile_size}, workers={workers}")
+    
+    # Check if output directory exists and is not empty
+    if output_folder.exists():
+        existing_files = list(output_folder.iterdir())
+        if existing_files:
+            print(f"\n  WARNING: Output directory is not empty!")
+            print(f"  Path: {output_folder}")
+            print(f"  Contains {len(existing_files)} items")
+            print(f"  Mixing multiple DICOM series in one folder can cause issues.\n")
+            
+            response = input("  Delete existing content and continue? (yes/no): ").strip().lower()
+            if response in ['yes', 'y']:
+                print(f"  Deleting existing content...")
+                shutil.rmtree(output_folder)
+                output_folder.mkdir(parents=True, exist_ok=True)
+                print(f"  Output directory cleared.")
+            else:
+                print(f"  Aborting conversion to avoid mixing DICOM series.")
+                print(f"  Please empty the directory or choose a different output path.")
+                return None
     
     # Initialize components
+    init_start = time.time()
     loader = CCDIMetadataLoader(
         pathology_csv=str(pathology_csv),
         sample_csv=str(sample_csv),
@@ -84,11 +114,16 @@ def convert_ccdi_slide(
     
     registry = UIDRegistry(str(uid_registry_db))
     builder = MetadataBuilder(registry, dataset="CCDI")
+    init_time = time.time() - init_start
+    print(f"  Initialization time: {init_time:.2f}s")
     
     # Load domain metadata
     filename = input_file.name
     print(f"  Loading metadata for {filename}...")
+    load_start = time.time()
     domain_metadata = loader.load_slide(filename)
+    load_time = time.time() - load_start
+    print(f"  Metadata loading time: {load_time:.2f}s")
     
     print(f"  Patient: {domain_metadata.patient.participant_id}")
     print(f"  Specimens: {len(domain_metadata.specimens)}")
@@ -97,15 +132,20 @@ def convert_ccdi_slide(
     
     # Extract study datetime from TIFF
     print(f"  Extracting scan datetime...")
+    datetime_start = time.time()
     study_datetime = extract_scan_datetime(input_file)
+    datetime_time = time.time() - datetime_start
     if study_datetime:
-        print(f"    Found: {study_datetime}")
+        print(f"    Found: {study_datetime} (took {datetime_time:.2f}s)")
     else:
-        print(f"    Not found in TIFF, using fallback")
+        print(f"    Not found in TIFF, using fallback (took {datetime_time:.2f}s)")
     
     # Build metadata
     print(f"  Building DICOM metadata...")
+    build_start = time.time()
     wsi_metadata, supplement = builder.build(domain_metadata, study_datetime)
+    build_time = time.time() - build_start
+    print(f"  Metadata build time: {build_time:.2f}s")
     
     print(f"  Study UID: {wsi_metadata.study.uid}")
     print(f"  Series: {wsi_metadata.series.number} - {wsi_metadata.series.description}")
@@ -114,6 +154,7 @@ def convert_ccdi_slide(
     print(f"  Running wsidicomizer conversion...")
     output_folder.mkdir(parents=True, exist_ok=True)
     
+    conversion_start = time.time()
     result = WsiDicomizer.convert(
         filepath=input_file,
         output_path=output_folder,
@@ -124,18 +165,33 @@ def convert_ccdi_slide(
         tile_size=tile_size,
         encoding=Jpeg2kLosslessEncoder()
     )
+    conversion_time = time.time() - conversion_start
+    total_time = time.time() - start_time
     
+    print(f"  Conversion time: {conversion_time:.2f}s")
+    print(f"  Total time: {total_time:.2f}s")
     print(f"  Conversion complete: {result}")
+    print(f"\n  Profiling Summary:")
+    print(f"    Initialization:     {init_time:6.2f}s ({init_time/total_time*100:5.1f}%)")
+    print(f"    Metadata Loading:   {load_time:6.2f}s ({load_time/total_time*100:5.1f}%)")
+    print(f"    DateTime Extract:   {datetime_time:6.2f}s ({datetime_time/total_time*100:5.1f}%)")
+    print(f"    Metadata Build:     {build_time:6.2f}s ({build_time/total_time*100:5.1f}%)")
+    print(f"    WSI Conversion:     {conversion_time:6.2f}s ({conversion_time/total_time*100:5.1f}%)")
+    print(f"    Total:              {total_time:6.2f}s")
+    
     return result
 
 
 if __name__ == "__main__":
+    # Sample directory
+    sample_root = Path("/Users/af61/Desktop/PW44/pw44-wsi-conversion/test_data/sample5")
+    
     # Convert sample5
-    input_file = Path("/Users/af61/Desktop/PW44/wsi-conversion/test_data/sample5/src/0DWWQ6.svs")
-    output_folder = Path("/Users/af61/Desktop/PW44/wsi-conversion/test_data/sample5/copilot-output")
+    input_file = sample_root / "src/0DWWQ6.svs"
+    output_folder = sample_root / "copilot-output"
     
     # CCDI CSVs
-    csv_base = Path("/Users/af61/Desktop/PW44/wsi-conversion/idc-wsi-conversion")
+    csv_base = Path("/Users/af61/Desktop/PW44/pw44-wsi-conversion/idc-wsi-conversion")
     csv_prefix = "phs002790_MCI_Release38_CCDI_v2.1.0_IDC_Submission_6"
     
     pathology_csv = csv_base / f"{csv_prefix}_pathology_file.csv"
@@ -144,10 +200,13 @@ if __name__ == "__main__":
     diagnosis_csv = csv_base / f"{csv_prefix}_diagnosis.csv"
     
     # Code tables and registry
-    codes_dir = Path("/Users/af61/Desktop/PW44/wsi-conversion/copilot-solution/codes")
-    uid_registry_db = Path("/Users/af61/Desktop/PW44/wsi-conversion/copilot-solution/ccdi_uid_registry.db")
+    codes_dir = Path("/Users/af61/Desktop/PW44/pw44-wsi-conversion/copilot-solution/codes")
+    uid_registry_db = Path("/Users/af61/Desktop/PW44/pw44-wsi-conversion/copilot-solution/ccdi_uid_registry.db")
     
-    # Run conversion
+    # Run conversion (using module-level defaults or override here)
+    tile_size = DEFAULT_TILE_SIZE  # Can override: e.g., tile_size = 512
+    workers = DEFAULT_WORKERS      # Can override: e.g., workers = 16
+    
     convert_ccdi_slide(
         input_file=input_file,
         output_folder=output_folder,
@@ -157,8 +216,8 @@ if __name__ == "__main__":
         diagnosis_csv=diagnosis_csv,
         codes_dir=codes_dir,
         uid_registry_db=uid_registry_db,
-        tile_size=1024,
-        workers=1
+        tile_size=tile_size,
+        workers=workers
     )
     
     print("\nConversion finished!")
