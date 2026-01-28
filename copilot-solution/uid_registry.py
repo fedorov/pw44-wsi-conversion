@@ -89,7 +89,7 @@ class UIDRegistry:
                     return row[0]
                 
                 # Generate new UID using pydicom (2.25 format)
-                study_uid = generate_uid()
+                study_uid = generate_uid(prefix=None)
                 
                 conn.execute(
                     "INSERT INTO studies (dataset, patient_id, study_instance_uid, created_at) VALUES (?, ?, ?, ?)",
@@ -126,7 +126,7 @@ class UIDRegistry:
                     return row[0]
                 
                 # Generate new UID using pydicom (2.25 format)
-                specimen_uid = generate_uid()
+                specimen_uid = generate_uid(prefix=None)
                 
                 conn.execute(
                     "INSERT INTO specimens (dataset, specimen_id, specimen_uid, created_at) VALUES (?, ?, ?, ?)",
