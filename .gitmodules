@@ -10,3 +10,9 @@
 [submodule "sardana-dcm"]
 	path = sardana-dcm
 	url = https://github.com/fedorov/sardana-dcm
+[submodule "wsidicom"]
+	path = wsidicom
+	url = https://github.com/imi-bigpicture/wsidicom.git
+[submodule "wsidicomizer"]
+	path = wsidicomizer
+	url = https://github.com/imi-bigpicture/wsidicomizer.git
