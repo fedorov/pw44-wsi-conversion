@@ -65,7 +65,7 @@ def convert_ccdi_slide(
 
 if __name__ == "__main__":
     # Sample directory
-    sample_root = Path("/Users/af61/Desktop/PW44/pw44-wsi-conversion/test_data/sample5")
+    sample_root = Path("/Users/af61/Desktop/PW44/pw44-wsi-conversion/test_data/sample7")
     
     # CCDI CSVs
     csv_base = Path("/Users/af61/Desktop/PW44/pw44-wsi-conversion/idc-wsi-conversion")
@@ -86,6 +86,36 @@ if __name__ == "__main__":
     print("Example 1: Single slide conversion with native tile size and encoding")
     print("=" * 70)
     
+    # Find input file in src directory
+    src_dir = sample_root / "src"
+    if not src_dir.exists():
+        print(f"ERROR: Source directory not found: {src_dir}")
+        exit(1)
+    
+    # Look for slide files (common WSI extensions)
+    slide_extensions = ['.svs', '.tiff', '.tif', '.ndpi', '.scn', '.mrxs']
+    input_files = []
+    for ext in slide_extensions:
+        input_files.extend(src_dir.glob(f'*{ext}'))
+    
+    if len(input_files) == 0:
+        print(f"ERROR: No slide files found in {src_dir}")
+        print(f"Looking for extensions: {', '.join(slide_extensions)}")
+        exit(1)
+    elif len(input_files) > 1:
+        print(f"ERROR: Multiple slide files found in {src_dir}:")
+        for f in input_files:
+            print(f"  - {f.name}")
+        print(f"\nPlease ensure only one slide file is present in the directory.")
+        exit(1)
+    
+    input_file = input_files[0]
+    print(f"Found slide file: {input_file.name}")
+    
+    # Create output folder if it doesn't exist
+    output_folder = sample_root / "copilot-output"
+    output_folder.mkdir(parents=True, exist_ok=True)
+    
     converter = CCDIConverter(
         pathology_csv=pathology_csv,
         sample_csv=sample_csv,
@@ -97,9 +127,6 @@ if __name__ == "__main__":
         workers=DEFAULT_WORKERS,
         encoding=None  # Use native encoding
     )
-    
-    input_file = sample_root / "src/0DWWQ6.svs"
-    output_folder = sample_root / "copilot-output"
     
     result = converter.convert_slide(input_file, output_folder)
     

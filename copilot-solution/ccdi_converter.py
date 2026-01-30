@@ -147,6 +147,47 @@ def get_native_tile_size(filepath: Path) -> Optional[int]:
         return None
 
 
+def inspect_source_file(filepath: Path) -> Dict:
+    """
+    Inspect source WSI file to understand its structure.
+    
+    Args:
+        filepath: Path to TIFF/SVS file
+        
+    Returns:
+        Dictionary with file information
+    """
+    info = {
+        'file_size_mb': filepath.stat().st_size / (1024 * 1024),
+        'num_pages': 0,
+        'pages': []
+    }
+    
+    try:
+        with tifffile.TiffFile(filepath) as tif:
+            info['num_pages'] = len(tif.pages)
+            
+            for i, page in enumerate(tif.pages):
+                page_info = {
+                    'index': i,
+                    'width': page.imagewidth,
+                    'height': page.imagelength,
+                    'is_tiled': getattr(page, 'is_tiled', False),
+                    'compression': page.compression.name if hasattr(page.compression, 'name') else str(page.compression),
+                }
+                
+                if page_info['is_tiled']:
+                    page_info['tile_width'] = page.tilewidth
+                    page_info['tile_height'] = page.tilelength
+                
+                info['pages'].append(page_info)
+                
+    except Exception as e:
+        info['error'] = str(e)
+    
+    return info
+
+
 class CCDIConverter:
     """
     Unified converter for single-slide and batch CCDI WSI conversions.
@@ -305,6 +346,18 @@ class CCDIConverter:
             self.batch_stats['skipped'] += 1
             return None
         
+        # Inspect source file
+        print(f"\n  Inspecting source file...")
+        source_info = inspect_source_file(input_file)
+        print(f"  Source file size: {source_info['file_size_mb']:.2f} MB")
+        print(f"  Number of pages: {source_info['num_pages']}")
+        for page in source_info['pages'][:3]:  # Show first 3 pages
+            size_str = f"{page['width']}x{page['height']}"
+            tile_str = f", tiles: {page.get('tile_width', 'N/A')}x{page.get('tile_height', 'N/A')}" if page['is_tiled'] else ""
+            print(f"    Page {page['index']}: {size_str}, compression: {page['compression']}{tile_str}")
+        if source_info['num_pages'] > 3:
+            print(f"    ... and {source_info['num_pages'] - 3} more page(s)")
+        
         # Handle tile_size - use native if None
         tile_size_source = "override"
         if tile_size is None and self.tile_size is None:
@@ -415,11 +468,21 @@ class CCDIConverter:
             conversion_time = time.time() - conversion_start
             total_time = time.time() - start_time
             
+            # Calculate output file sizes
+            total_output_size_mb = sum(Path(f).stat().st_size for f in result) / (1024 * 1024)
+            size_ratio = (total_output_size_mb / source_info['file_size_mb']) * 100 if source_info['file_size_mb'] > 0 else 0
+            
             print(f"\n  {'='*68}")
             print(f"  ✓ CONVERSION SUCCESSFUL")
             print(f"  {'='*68}")
             print(f"  Generated {len(result)} DICOM file(s)")
             print(f"  Output: {output_folder}")
+            print(f"\n  File Size Analysis:")
+            print(f"    Source file:    {source_info['file_size_mb']:8.2f} MB")
+            print(f"    Output files:   {total_output_size_mb:8.2f} MB  ({size_ratio:.1f}% of source)")
+            if size_ratio < 50:
+                print(f"    ⚠ Warning: Output is significantly smaller than source!")
+                print(f"      This may indicate missing pyramid levels or re-encoding.")
             
             print(f"\n  Timing Breakdown:")
             print(f"    Metadata Loading:   {load_time:7.2f}s  ({load_time/total_time*100:5.1f}%)")
